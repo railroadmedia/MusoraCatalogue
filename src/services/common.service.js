@@ -1,1 +1,1 @@
-export default { rootUrl: '', tryCall: '', Contexts: '' };
+export default { rootUrl: '', tryCall: '', Contexts: '', app: '' };

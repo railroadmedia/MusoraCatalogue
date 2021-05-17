@@ -78,7 +78,7 @@ export default class Sort extends React.PureComponent {
                   })}
                   <Text
                     style={{
-                      color: i === sortIndex ? 'white' : colors.pianoteGrey,
+                      color: i === sortIndex ? 'white' : '#6e777a',
                       paddingLeft: 20
                     }}
                   >

@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import { Download_V2 } from 'RNDownload';
+import DeviceInfo from 'react-native-device-info';
 import * as AddCalendarEvent from 'react-native-add-calendar-event';
 
 import {
@@ -26,7 +27,7 @@ import commonService from './services/common.service';
 import { toggleMyList, toggleLike } from './redux/CardsActions';
 
 import { like, likeOn, addToCalendar, x, plus } from './img/svgs';
-
+let isTablet = DeviceInfo.isTablet();
 class Card extends React.Component {
   constructor(props) {
     super(props);
@@ -90,7 +91,7 @@ class Card extends React.Component {
         new Date(published_on) > new Date() ? ',e_grayscale' : ''
       }/${thumbnail_url}`;
     }
-    return 'https://dmmior4id2ysr.cloudfront.net/assets/images/pianote_fallback_thumb.jpg';
+    return `https://dmmior4id2ysr.cloudfront.net/assets/images/${commonService.app}_fallback_thumb.jpg`;
   }
 
   render() {
@@ -265,11 +266,11 @@ class Card extends React.Component {
                       }}
                       styles={{
                         iconSize: {
-                          width: onTablet ? 28 : 22,
-                          height: onTablet ? 28 : 22
+                          width: isTablet ? 28 : 22,
+                          height: isTablet ? 28 : 22
                         },
-                        activityIndicatorColor: colors.pianoteRed,
-                        animatedProgressBackground: colors.pianoteRed,
+                        activityIndicatorColor: '#fb1b2f',
+                        animatedProgressBackground: '#fb1b2f',
                         touchable: { flex: 1 },
                         textStatus: {
                           color: 'black',
@@ -281,8 +282,8 @@ class Card extends React.Component {
                           alertTextTitleColor: 'black',
                           alertTextMessageColor: 'black',
                           alertTextTitleFontFamily: 'OpenSans-Bold',
-                          alertTouchableTextCancelColor: colors.pianoteRed,
-                          alertTouchableDeleteBackground: colors.pianoteRed,
+                          alertTouchableTextCancelColor: '#fb1b2f',
+                          alertTouchableDeleteBackground: '#fb1b2f',
                           alertBackground: 'white',
                           alertTouchableTextDeleteFontFamily: 'OpenSans-Bold',
                           alertTouchableTextCancelFontFamily: 'OpenSans-Bold'

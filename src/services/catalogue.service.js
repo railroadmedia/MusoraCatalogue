@@ -35,11 +35,9 @@ export function getContent(options) {
         break;
       case 'SONGS':
       case 'COURSES':
-        Promise.all([
-          getAll(options),
-          getInProgress(options)
-        ]).then(([{ all }, { inProgress }]) =>
-          setCache({ all, inProgress }, options.scene, res)
+        Promise.all([getAll(options), getInProgress(options)]).then(
+          ([{ all }, { inProgress }]) =>
+            setCache({ all, inProgress }, options.scene, res)
         );
         break;
       case 'STUDENTFOCUS':
@@ -54,13 +52,14 @@ export function getContent(options) {
           setCache({ studentFocus, inProgress }, options.scene, res);
         });
         break;
-      case 'HOME':
+      case 'home':
         Promise.all([
           getMethod(options.signal),
           getAll(options),
-          getInProgress(options)
-        ]).then(([{ method }, { all }, { inProgress }]) =>
-          setCache({ method, all, inProgress }, options.scene, res)
+          getInProgress(options),
+          getUser(options.signal)
+        ]).then(([{ method }, { all }, { inProgress }, { user }]) =>
+          setCache({ method, all, inProgress, user }, options.scene, res)
         );
         break;
       default:
@@ -80,9 +79,9 @@ export function getAll({
   return new Promise(res =>
     commonService
       .tryCall(
-        `${
-          commonService.rootUrl
-        }/musora-api/all?brand=pianote&statuses[]=published&limit=20&${getIncludedTypes(
+        `${commonService.rootUrl}/musora-api/all?brand=${
+          commonService.app
+        }&statuses[]=published&limit=20&${getIncludedTypes(
           scene
         )}&page=${page}&sort=${sort}${filters}`,
         null,
@@ -104,9 +103,9 @@ export function getInProgress({
   return new Promise(res =>
     commonService
       .tryCall(
-        `${
-          commonService.rootUrl
-        }/musora-api/in-progress?brand=pianote&&statuses[]=published&limit=20&${getIncludedTypes(
+        `${commonService.rootUrl}/musora-api/in-progress?brand=${
+          commonService.app
+        }&&statuses[]=published&limit=20&${getIncludedTypes(
           scene
         )}&required_user_states[]=started&sort=${sort}&page=${page}${filters}`,
         null,
@@ -117,12 +116,27 @@ export function getInProgress({
   );
 }
 /** END **/
+/** fetch user data used in getContent() **/
+function getUser(signal) {
+  if (commonService.app === 'pianote') Promise.resolve({ user: undefined });
+  return new Promise(res =>
+    commonService
+      .tryCall(
+        `${commonService.rootUrl}/musora-api/profile`,
+        null,
+        null,
+        signal
+      )
+      .then(user => res({ user }))
+  );
+}
+/** END **/
 /** data fetcher for home's method section used in getContent() **/
 function getMethod(signal) {
   return new Promise(res =>
     commonService
       .tryCall(
-        `${commonService.rootUrl}/musora-api/learning-paths/pianote-method`,
+        `${commonService.rootUrl}/musora-api/learning-paths/${commonService.app}-method`,
         null,
         null,
         signal
@@ -173,19 +187,29 @@ function getIncludedTypes(scene) {
       ]
         .map(t => it + t)
         .join('&');
-    case 'HOME':
-      return [
-        'learning-path-course',
-        'course',
-        'song',
-        'quick-tips',
-        'question-and-answer',
-        'student-review',
-        'boot-camps',
-        'chord-and-scale',
-        'pack-bundle-lesson',
-        'podcasts'
-      ]
+    case 'home':
+      return ['course', 'song', 'pack-bundle-lesson']
+        .concat(
+          commonService.app === 'drumeo'
+            ? [
+                'coach-stream',
+                'play-along',
+                'student-focus',
+                'semester-pack',
+                'pack',
+                'learning-path',
+                'show'
+              ]
+            : [
+                'learning-path-course',
+                'quick-tips',
+                'question-and-answer',
+                'student-review',
+                'boot-camps',
+                'chord-and-scale',
+                'podcasts'
+              ]
+        )
         .map(t => it + t)
         .join('&');
   }
@@ -195,8 +219,13 @@ function getIncludedTypes(scene) {
 
 /* data caching */
 /** set the cache after the initial data fetch in componentDidMount() **/
-function setCache({ method, all, inProgress, studentFocus }, scene, resolve) {
+function setCache(
+  { method, all, inProgress, studentFocus, user },
+  scene,
+  resolve
+) {
   cacheCatalogue[scene] = {
+    user,
     method,
     // only keep the ids in cacheCatalogue all
     // move the actual data from all in cacheCards
@@ -220,7 +249,7 @@ function setCache({ method, all, inProgress, studentFocus }, scene, resolve) {
       'utf8'
     )
   );
-  resolve({ method, all, inProgress, studentFocus });
+  resolve({ method, all, inProgress, studentFocus, user });
 }
 /** END **/
 /** set the cards cache in case 'add to my list' or 'like' states are changed used in CardsReducer **/

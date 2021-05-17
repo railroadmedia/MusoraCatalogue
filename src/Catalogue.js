@@ -12,6 +12,7 @@ import {
   Modal
 } from 'react-native';
 
+import DeviceInfo from 'react-native-device-info';
 import LinearGradient from 'react-native-linear-gradient';
 
 import Card from './Card';
@@ -23,13 +24,13 @@ import { getContent, getAll, cache } from './services/catalogue.service';
 
 import { arrowLeft, play, reset, arrowRight } from './img/svgs';
 
-let styles;
-
+let styles,
+  isTablet = DeviceInfo.isTablet();
 export default class Catalogue extends React.Component {
   page = 1;
   scene = this.props.route.name;
   isSeeAllScene = this.scene === 'SEEALL';
-  flatListCols = onTablet ? 3 : this.scene === 'STUDENTFOCUS' ? 2 : 1;
+  flatListCols = isTablet ? 3 : this.scene === 'STUDENTFOCUS' ? 2 : 1;
 
   constructor(props) {
     super(props);
@@ -91,13 +92,18 @@ export default class Catalogue extends React.Component {
   setData = (action, state = { loading: false, refreshing: false }) =>
     (action === 'refresh' || this.isSeeAllScene ? getContent : getAll)(
       this.getServiceOptions(action)
-    ).then(({ method, all, inProgress, studentFocus }) => {
+    ).then(({ method, all, inProgress, studentFocus, user }) => {
       try {
         if (all?.aborted) return;
         if (action === 'refresh') {
           if (this.filterRef) this.filterRef.appliedFilters = {};
           if (this.sortRef) this.sortRef.sortIndex = 0;
-          this.data = { method, inProgress: inProgress?.data, studentFocus };
+          this.data = {
+            method,
+            inProgress: inProgress?.data,
+            studentFocus,
+            user
+          };
         }
         if (action === 'loadMore') this.data.all?.push(...(all.data || []));
         else this.data.all = all?.data;
@@ -164,7 +170,7 @@ export default class Catalogue extends React.Component {
     <View
       style={{
         width: `${100 / this.flatListCols}%`,
-        paddingRight: onTablet ? ((index + 1) % this.flatListCols ? 0 : 10) : 0
+        paddingRight: isTablet ? ((index + 1) % this.flatListCols ? 0 : 10) : 0
       }}
     >
       <Card
@@ -174,7 +180,7 @@ export default class Catalogue extends React.Component {
             ? 'show'
             : this.scene === 'SONGS'
             ? 'squareRow'
-            : onTablet
+            : isTablet
             ? 'compact'
             : 'row'
         }
@@ -189,11 +195,13 @@ export default class Catalogue extends React.Component {
         id: methodId,
         completed,
         started,
+        level_rank,
         banner_background_image
       } = {},
       inProgress,
       all,
-      studentFocus
+      studentFocus,
+      user: { avatarUrl, totalXp } = {}
     } = this.data;
     let { refreshing, filtering, sorting, loadingMore } = this.state;
     let filterAndSortDisabled =
@@ -224,12 +232,21 @@ export default class Catalogue extends React.Component {
             resizeMode={'contain'}
           />
         )}
-        {this.scene === 'HOME' && !!methodId && (
+        {this.scene === 'home' && !!methodId && (
           <ImageBackground
             resizeMode={'cover'}
             style={{
               width: '100%',
-              aspectRatio: onTablet ? (this.context.isLandscape ? 2.5 : 1.8) : 1
+              aspectRatio:
+                commonService.app === 'pianote'
+                  ? isTablet
+                    ? this.context.isLandscape
+                      ? 2.5
+                      : 1.8
+                    : 1
+                  : isTablet && this.context.isLandscape
+                  ? 3
+                  : 1.8
             }}
             source={{
               uri: `https://cdn.musora.com/image/fetch/fl_lossy,q_auto:good,c_fill,g_face/${banner_background_image}`
@@ -246,7 +263,11 @@ export default class Catalogue extends React.Component {
             >
               <Image
                 style={{ height: '20%', aspectRatio: 801 / 286 }}
-                source={require('./img/pianote-method.png')}
+                source={
+                  commonService.app === 'drumeo'
+                    ? require(`./img/drumeo-method.png`)
+                    : require(`./img/pianote-method.png`)
+                }
                 resizeMode={'contain'}
               />
               <View style={styles.headerBtnsContainer}>
@@ -284,6 +305,91 @@ export default class Catalogue extends React.Component {
             </LinearGradient>
           </ImageBackground>
         )}
+        {this.scene === 'home' && (
+          <TouchableOpacity
+            style={{
+              padding: 10,
+              alignItems: 'center',
+              flexDirection: 'row',
+              borderBottomWidth: 1,
+              justifyContent: 'space-around',
+              borderBottomColor: 'green'
+            }}
+            onPress={() => {}}
+          >
+            <Image
+              testID='userImage'
+              source={{ uri: avatarUrl }}
+              style={{
+                height: 50,
+                aspectRatio: 1,
+                borderRadius: 25
+              }}
+            />
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: 'OpenSans',
+                  color: 'green'
+                }}
+                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+              >
+                XP
+              </Text>
+              <Text
+                testID='xp'
+                style={{
+                  fontSize: 28,
+                  includeFontPadding: false,
+                  fontFamily: 'RobotoCondensed-Bold',
+                  color: 'green'
+                }}
+                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+              >
+                {totalXp >= 1000000
+                  ? (totalXp / 1000000).toFixed() + 'M'
+                  : totalXp >= 100000
+                  ? (totalXp / 1000).toFixed() + 'K'
+                  : totalXp}
+              </Text>
+            </View>
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: 'OpenSans',
+                  color: 'green'
+                }}
+                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+              >
+                DRUMEO METHOD
+              </Text>
+              <Text
+                testID='level'
+                style={{
+                  fontSize: 28,
+                  includeFontPadding: false,
+                  fontFamily: 'RobotoCondensed-Bold',
+                  color: 'green'
+                }}
+                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+              >
+                LEVEL {level_rank}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
         {!!inProgress?.length && (
           <>
             <View style={styles.flSectionHeaderContainer}>
@@ -309,7 +415,7 @@ export default class Catalogue extends React.Component {
               keyboardShouldPersistTaps='handled'
               contentContainerStyle={{
                 width: `${
-                  (onTablet ? 30 : this.scene === 'SONGS' ? 40 : 70) *
+                  (isTablet ? 30 : this.scene === 'SONGS' ? 40 : 70) *
                   inProgress?.length
                 }%`
               }}
@@ -368,7 +474,7 @@ export default class Catalogue extends React.Component {
   render() {
     let { scene, data } = this;
     let { loading, loadingMore, refreshing, errorVisible } = this.state;
-    let backgroundColor = scene === 'HOME' ? 'black' : '#00101d';
+    let backgroundColor = scene === 'home' ? 'black' : '#00101d';
     return (
       <View style={{ flex: 1 }}>
         {loading ? (
