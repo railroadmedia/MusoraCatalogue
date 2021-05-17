@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": false,
   "peerDependencies": {
-    "react": "16.13.1",
+    "react": "^16.13.1",
     "react-native": "^0.63.4",
     "react-native-svg": "^12.1.0",
     "rn-fetch-blob": "git+https://github.com/joltup/rn-fetch-blob.git",
