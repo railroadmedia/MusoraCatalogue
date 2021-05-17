@@ -1,0 +1,21 @@
+{
+  "name": "MusoraCatalogue",
+  "version": "0.0.1",
+  "private": false,
+  "peerDependencies": {
+    "react": "16.13.1",
+    "react-native": "^0.63.4",
+    "react-native-svg": "^12.1.0",
+    "rn-fetch-blob": "git+https://github.com/joltup/rn-fetch-blob.git",
+    "react-redux": "^7.2.2",
+    "redux": "^4.0.5",
+    "RNDownload": "git+https://github.com/railroadmedia/RNDownload.git",
+    "react-native-add-calendar-event": "^4.0.0",
+    "react-native-linear-gradient": "^2.5.6",
+    "react-native-device-info": "^7.3.1",
+    "react-native-safe-area-context": "^3.2.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
