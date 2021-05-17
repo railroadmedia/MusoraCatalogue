@@ -246,7 +246,7 @@ export default class Catalogue extends React.Component {
             >
               <Image
                 style={{ height: '20%', aspectRatio: 801 / 286 }}
-                source={require('../../assets/img/imgs/pianote-method.png')}
+                source={require('./img/pianote-method.png')}
                 resizeMode={'contain'}
               />
               <View style={styles.headerBtnsContainer}>
